@@ -1,0 +1,4 @@
+*.pyc
+static/
+mysql.cnf
+__pycache__
