@@ -8,9 +8,9 @@ class Area(models.Model):   # 영역
         return '<영역 : %s>' % self.name
 
 class Course(models.Model): # 과목
-    code = models.CharField(max_length=10, primary_key=True)
+    code = models.CharField(max_length=20, primary_key=True)
     name = models.CharField(max_length=100, null=False)
-    area = models.ForeignKey('Area', on_delete=models.SET_NULL, null=True)
+    area = models.ForeignKey('Area', on_delete=models.SET_NULL, null=True, blank=True)
     hours = models.PositiveSmallIntegerField()
     
     MANDATORY = 'MA'    # 전필
@@ -19,7 +19,7 @@ class Course(models.Model): # 과목
         (MANDATORY, '전공 필수'),
         (ELECTIVE, '전공 선택'),
     )
-    course_type = models.CharField(max_length=2, choices=COURSE_TYPE_CHOICES, null=True)
+    course_type = models.CharField(max_length=2, choices=COURSE_TYPE_CHOICES, null=True, blank=True)
 
     def __str__(self):
         return '<과목 : %s>' % self.name
@@ -85,6 +85,9 @@ class Rule(models.Model):   # 규정
 
     value = models.PositiveSmallIntegerField()
 
+    scope_from = models.PositiveSmallIntegerField(null=True)
+    scope_to = models.PositiveSmallIntegerField(null=True)
+
     def __str__(self):
         ruleTypeDict = {AREA: '영역', COURSE: '과목', CUSTOM: '임의'}
         valueTypeDict = {HOURS: '학점', COUNT: '과목'}
@@ -93,7 +96,7 @@ class Rule(models.Model):   # 규정
             content = self.area
         else:
             content = self.courses
-        return '<%s 규정 : %s (%s 중 %d%s 이상)>' % (namedict[self.rule_type], str(content), self.value, valueTypeDict[self.value_type])
+        return '<%s 규정 : %s (%s 중 %d%s 이상) (%d - %d)>' % (namedict[self.rule_type], str(content), self.value, valueTypeDict[self.value_type], self.scope_from, self.scope_to)
 
 class Department(models.Model):
     name = models.CharField(max_length=20)
