@@ -51,6 +51,9 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_COOKIE_HTTPONLY = True
+
 ROOT_URLCONF = 'graduate.urls'
 
 TEMPLATES = [
@@ -80,6 +83,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'OPTIONS': {
             'read_default_file': os.path.join(BASE_DIR, 'mysql.cnf'),
+            'init_command': 'SET storage_engine=INNODB,character_set_connection=utf8,collation_connection=utf8_unicode_ci',
+            'charset': 'utf8',
+        },
+        'TEST': {
+            'NAME': 'test_graduate'
         },
     }
 }

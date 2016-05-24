@@ -2,3 +2,4 @@
 static/
 mysql.cnf
 __pycache__
+migrations
