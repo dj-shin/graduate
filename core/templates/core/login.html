@@ -5,8 +5,10 @@
   </head>
   <body>
     <form action="{% url 'login' %}" method="post">
-      <input type="text" name="username">
-      <input type="password" name="password">
+      <h3>MySNU 정보 입력</h3>
+      <p>계정 정보는 마이스누에서 이수 과목 정보를 불러오는 데만 사용되며, 어떤 방식으로든 보관되지 않습니다</p>
+      <label for="username">ID: </label><input type="text" name="username">
+      <label for="password">Password: </label><input type="password" name="password">
       <input type="submit">
       <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     </form>

@@ -64,7 +64,11 @@ def crawlCourse(username, password):
             json={"SUN":{"strSchyy":"2016","strShtmFg":"U000200001","strDetaShtmFg":"U000300001","strBdegrSystemFg":"U000100001","strFlag":"all"}}).text
     courses = json.loads(grade_json)
     result = [AdjustCourse(course) for course in courses['GRD_SCOR401']]
-    return result
+    dept_json = br.post('https://shine.snu.ac.kr/uni/uni/scor/mrtr/findTabCumlMrksYyShtmClsfTtInq01List2.action',
+            params={'cscLocale':'ko_KR','strPgmCd':'S030302'}, headers=headers,
+            json={"SUN":{"strSchyy":"2016","strShtmFg":"U000200001","strDetaShtmFg":"U000300001","strBdegrSystemFg":"U000100001","strFlag":"all"}}).text
+    dept = json.loads(dept_json)['GRD_SCOR402'][0]
+    return {'courses': result, 'dept': dept}
 
 def login(request):
     if request.method == 'GET':
@@ -78,12 +82,14 @@ def login(request):
         return redirect('courses')
 
 def courses(request):
-    return render(request, 'core/courses.html')
+    if request.session.get('mysnu_username', False) and request.session.get('mysnu_password', False):
+        return render(request, 'core/courses.html')
+    return redirect('login')
 
 def coursesJSON(request):
     if request.session.get('mysnu_username', False) and request.session.get('mysnu_password', False):
         mysnu_username = request.session['mysnu_username']
         mysnu_password = request.session['mysnu_password']
         result = crawlCourse(mysnu_username, mysnu_password)
-        return JsonResponse({'courses': result})
-    return JsonResponse('')
+        return JsonResponse(result)
+    return JsonResponse(dict())
