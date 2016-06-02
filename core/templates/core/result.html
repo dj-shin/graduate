@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html>
+  <head>
+    <title>졸업시뮬레이션</title>
+    <style>
+    td {
+      width: 100px;
+    }
+    th {
+      width: 100px;
+    }
+    </style>
+    <script>
+    function roundRect(ctx, x, y, width, height, radius) {
+      radius = {tl: radius, tr: radius, br: radius, bl: radius};
+      ctx.beginPath();
+      ctx.moveTo(x + radius.tl, y);
+      ctx.lineTo(x + width - radius.tr, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+      ctx.lineTo(x + width, y + height - radius.br);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+      ctx.lineTo(x + radius.bl, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+      ctx.lineTo(x, y + radius.tl);
+      ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+    function drawName(name, x, y, mandatory, done){
+      var ctx = document.getElementById("class").getContext("2d");
+      if (done) {
+        ctx.strokeStyle="#d3d3d3";
+        ctx.fillStyle="#d3d3d3";
+      } else {
+        ctx.strokeStyle="#d3d3d3";
+        ctx.fillStyle="#f0e68c";
+      }
+      if (ctx.measureText(name).width > 120) {
+        roundRect(ctx, x, y, 130, 50, 10);
+      } else {
+        roundRect(ctx, x, y, 130, 40, 10);
+      }
+      ctx.textAlign="center";
+      ctx.font="bold 12px Arial";
+      if (mandatory) {
+        ctx.strokeStyle="#b22222";
+        ctx.fillStyle="#b22222";
+      } else {
+        ctx.strokeStyle="#000000";
+        ctx.fillStyle="#000000";
+      }
+      ctx.fillText(name, x+65, y+25, 120);
+    }
+    </script>
+  </head>
+
+  <body>
+    <h1>졸업시뮬레이션</h1>
+    <table id="info" style="margin-bottom: 5px; width: 50%">
+      <tr>
+        <td>이름:</td> <td>{{ name }}</td> <td>학과:</td> <td>{{ dept }}</td>
+      </tr>
+      <tr>
+        <td>학번:</td> <td>{{ stuno }}</td> <td>이수학점:</td> <td>{{ score }}</td>
+      </tr>
+    </table>
+    <p>전공</p>
+      <canvas id="class" height="700" width="1000" style="border:1px solid #000000"></canvas> 
+    <p>교양</p>
+    <div style="border: 1px solid; margin-bottom: 5px;">
+      <table style="width:100%">
+        <tr>
+          <th>영역</th>
+          <th>이수학점</th>
+          <th>과목</th>
+        </tr>
+        {% for area, value in general.items %}
+        <tr>
+          <td>{{ area }}</td>
+          <td>{{ value.hours }}</td>
+          <td>{{ value.courses }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    <script>
+    var canvas = document.getElementById("class");
+    var ctx = canvas.getContext("2d");
+    var img = new Image;
+    img.onload = function(){
+      ctx.drawImage(img, 0, 0);
+      {% for majorCourse in majorCourses %}
+      drawName("{{ majorCourse.name }}", {{ majorCourse.x }}, {{ majorCourse.y }}, {{ majorCourse.mandatory }}, {{ majorCourse.done }});
+      {% endfor %}
+    }
+    img.src = "http://cse.snu.ac.kr/sites/default/files/node--page/%EC%84%A0%EC%88%98%EA%B7%B8%EB%9E%98%ED%94%84_20160112%20%EC%88%98%EC%A0%95.jpg";
+    </script>
+  </body>
+</html>

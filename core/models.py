@@ -71,10 +71,10 @@ class Rule(models.Model):   # 규정
         (AREA, '영역'),
         (COURSE, '과목'),
     )
-    rule_type = models.CharField(max_length=2, choices=RULE_TYPE_CHOICES, null=True, blank=True)
+    rule_type = models.CharField(max_length=2, choices=RULE_TYPE_CHOICES)
 
     area = models.ForeignKey('Area', on_delete=models.SET_NULL, null=True, blank=True)
-    courses = models.ManyToManyField(Course, symmetrical=False)
+    courses = models.ManyToManyField(Course, symmetrical=False, blank=True)
 
     HOURS = 'HO'    # 학점수
     COUNT = 'CO'    # 과목수
@@ -86,8 +86,8 @@ class Rule(models.Model):   # 규정
 
     value = models.PositiveSmallIntegerField()
 
-    scope_from = models.PositiveSmallIntegerField(null=True)
-    scope_to = models.PositiveSmallIntegerField(null=True)
+    scope_from = models.PositiveSmallIntegerField(null=True, blank=True)
+    scope_to = models.PositiveSmallIntegerField(null=True, blank=True)
 
     def toJSON(self):
         result = {}
@@ -116,6 +116,8 @@ class Rule(models.Model):   # 규정
             content = self.area.name
         else:
             content = [course.name for course in self.courses.all()]
+        if not content:
+            content = ''
         return '<%s 규정 : %s 중 %s%s 이상 (%s - %s)>' % (
                 ruleTypeDict[self.rule_type],
                 content,

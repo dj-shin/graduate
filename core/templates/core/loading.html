@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html>
+
+<head>
+<style>
+body {
+	padding-top: 15%;
+}
+#progress {
+	position: relative;
+	width: 50%;
+	height: 30px;
+	border: solid;
+	border-color: gray;
+	margin: auto;
+}
+#bar {
+	position: absolute;
+	width: 1%;
+	height: 100%;
+	background-color: green;
+	margin: auto;
+}
+#text {
+	font-size: 16pt;
+}
+</style>
+	<title>졸업시뮬레이션</title>
+</head>
+
+<body>
+	<p id="text" align="center">졸업 시뮬레이션 중입니다...</p>
+	<div id="progress" align="center">
+		<div id="bar" align="center"></div>
+	</div>
+
+<script>
+function move(){
+	var elem = document.getElementByid("bar");
+	var width = 1;
+	var id = setInterval(frame, 10);
+	function frame(){
+		if (width >= 100) {
+			clearInterval(id);
+		} else {
+			width++;
+			elem.style.width = width + '%';
+		}
+	}
+}
+</script>
+
+</body>
+
+</html>

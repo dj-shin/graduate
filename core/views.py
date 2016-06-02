@@ -9,21 +9,8 @@ from bs4 import BeautifulSoup as bs
 import mechanicalsoup
 
 
-def test_basic_success(request):
-    success = [
-        CourseAcquired('이산수학'),
-        CourseAcquired('전기전자회로'),
-        CourseAcquired('프로그래밍의 원리'),
-        CourseAcquired('운영체제'),
-        CourseAcquired('컴퓨터구조'),
-        CourseAcquired('프로그래밍언어'),
-        CourseAcquired('알고리즘'),
-        CourseAcquired('컴퓨터프로그래밍'),
-        CourseAcquired('논리설계'),
-        CourseAcquired('자료구조')
-    ]
-    result = [rule.toJSON() for rule in ApplyRule(Rule.objects.all(), success)]
-    return HttpResponse(result)
+def index(request):
+    return redirect('courses')
 
 def AdjustCourse(course):
     return {
@@ -67,8 +54,65 @@ def crawlCourse(username, password):
     dept_json = br.post('https://shine.snu.ac.kr/uni/uni/scor/mrtr/findTabCumlMrksYyShtmClsfTtInq01List2.action',
             params={'cscLocale':'ko_KR','strPgmCd':'S030302'}, headers=headers,
             json={"SUN":{"strSchyy":"2016","strShtmFg":"U000200001","strDetaShtmFg":"U000300001","strBdegrSystemFg":"U000100001","strFlag":"all"}}).text
+    user_json = br.post('https://shine.snu.ac.kr/com/com/sstm/logn/findUserInfo.action', headers=headers,
+            json={"findUsers":{"rType":"3tier","logType":"systemConn","chgUserYn":"N","chgBfUser":"","chgAfUser":""}}).text
+    name = json.loads(user_json)['userInfos'][0]['USERNM']
     dept = json.loads(dept_json)['GRD_SCOR402'][0]
-    return {'courses': result, 'dept': dept}
+    majorCourses = [
+        {'name': '컴퓨터프로그래밍', 'x': 10, 'y': 90, 'mandatory': 'true'},
+        {'name': '프로그래밍의 원리', 'x': 170, 'y': 90, 'mandatory': 'false'},
+        {'name': '프로그래밍언어', 'x': 480, 'y': 90, 'mandatory': 'false'},
+        {'name': '소프트웨어 개발의 원리와 실제 ', 'x': 325, 'y': 140, 'mandatory': 'true'},
+        {'name': '소프트웨어공학', 'x': 640, 'y': 150, 'mandatory': 'false'},
+        {'name': '오토마타이론', 'x': 325, 'y': 205, 'mandatory': 'false'},
+        {'name': '컴파일러', 'x': 640, 'y': 205, 'mandatory': 'false'},
+        {'name': '데이터마이닝 개론', 'x': 325, 'y': 260, 'mandatory': 'false'},
+        {'name': '알고리즘', 'x': 480, 'y': 300, 'mandatory': 'true'},
+        {'name': '이산수학', 'x': 10, 'y': 350, 'mandatory': 'true'},
+        {'name': '자료구조', 'x': 170, 'y': 350, 'mandatory': 'true'},
+        {'name': '데이터베이스', 'x': 480, 'y': 350, 'mandatory': 'false'},
+        {'name': '인공지능', 'x': 640, 'y': 385, 'mandatory': 'false'},
+        {'name': '데이터통신', 'x': 480, 'y': 435, 'mandatory': 'false'},
+        {'name': '컴퓨터네트워크', 'x': 640, 'y': 435, 'mandatory': 'false'},
+        {'name': '컴퓨터그래픽스', 'x': 640, 'y': 487, 'mandatory': 'false'},
+        {'name': '공학수학 1', 'x': 10, 'y': 560, 'mandatory': 'true'},
+        {'name': '선형 및 비선형 계산모델', 'x': 325, 'y': 500, 'mandatory': 'false'},
+        {'name': '디지털신호처리', 'x': 325, 'y': 560, 'mandatory': 'false'},
+        {'name': '논리설계', 'x': 10, 'y': 620, 'mandatory': 'true'},
+        {'name': '전기전자회로', 'x': 170, 'y': 595, 'mandatory': 'true'},
+        {'name': '컴퓨터구조', 'x': 170, 'y': 645, 'mandatory': 'true'},
+        {'name': '시스템프로그래밍', 'x': 325, 'y': 645, 'mandatory': 'true'},
+        {'name': '하드웨어시스템설계', 'x': 480, 'y': 595, 'mandatory': 'true'},
+        {'name': '운영체제', 'x': 480, 'y': 645, 'mandatory': 'false'},
+    ]
+    score = sum([course['hours'] for course in result])
+    namelist = [course['name'] for course in result]
+    for majorCourse in majorCourses:
+        if majorCourse['name'] in namelist:
+            majorCourse['done'] = 'true'
+        else:
+            majorCourse['done'] = 'false'
+    general = [course for course in result if course['course_type'] == '교양']
+    for course in general:
+        try:
+            course['area'] = Course.objects.get(pk=course['code']).area.name
+        except Exception:
+            course['area'] = ''
+    general = dict()
+    for area in Area.objects.all():
+        courses = []
+        for course in result:
+            try:
+                if area == Course.objects.get(pk=course['code']).area:
+                    courses.append(course)
+            except Exception:
+                pass
+        if courses:
+            general[area.name] = {
+                'courses': ', '.join([course['name'] for course in courses]),
+                'hours': sum([int(course['hours']) for course in courses]),
+            }
+    return {'courses': result, 'dept': dept['deptNm'], 'stuno': dept['stuno'], 'majorCourses': majorCourses, 'score': score, 'name': name, 'general': general}
 
 def login(request):
     if request.method == 'GET':
@@ -83,7 +127,10 @@ def login(request):
 
 def courses(request):
     if request.session.get('mysnu_username', False) and request.session.get('mysnu_password', False):
-        return render(request, 'core/courses.html')
+        # return render(request, 'core/courses.html')
+        mysnu_username = request.session['mysnu_username']
+        mysnu_password = request.session['mysnu_password']
+        return render(request, 'core/result.html', crawlCourse(mysnu_username, mysnu_password))
     return redirect('login')
 
 def coursesJSON(request):
