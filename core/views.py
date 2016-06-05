@@ -1,23 +1,76 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, QueryDict, JsonResponse
 from django.core import serializers
-from core.models import Area, Course, CourseAcquired, Rule, Department
-from core.checker import ApplyRule
-from core.crawler import cseCrawl
+from core.models import Course
 import json
 from bs4 import BeautifulSoup as bs
 import mechanicalsoup
 
 
-def index(request):
-    return redirect('courses')
+def initMajorCourses(year):
+    if year >= 2015:
+        return [
+            [], [],
+            ['4190.101', 'M1522.000600', 'M1522.000700'],
+            ['4190.206A', '4190.308', 'M1522.000900', '400.000'],
+            ['M1522.000100', 'M1522.000800'],
+            ['4190.309A', '4190.407'],
+            [], [],
+        ]
+    if year <= 2014 or year >= 2011:
+        return [
+            [], [],
+            ['4190.201', '4190.101', '4190.102A', '4190.202A'],
+            ['4190.206A', '4190.204', '4190.210', '400.000'],
+            ['4190.307', '4190.308'],
+            ['4190.310', '4190.407'],
+            [], [],
+        ]
+    if year <= 2010 or year >= 2008:
+        return [
+            [], [],
+            ['4190.201', '4190.101', '4190.102A', '4190.202A'],
+            ['4190.206A', '4190.204', '4190.210', '400.000'],
+            ['4190.307', '4190.308'],
+            ['4190.310', '4190.407'],
+            [], [],
+        ]
+
+def replaceable(code):
+    replaceables = [
+        ['4190.202A', '4190.309A'],
+        ['4190.426', '4190.426A'],
+        ['4190.201', 'M1522.000700'],
+        ['4190.204', 'M1522.000900'],
+        ['4190.203', 'M1522.000800'],
+        ['4190.102A', 'M1522.000600'],
+        ['4190.311A', 'M1522.000200'],
+        ['4190.413A', 'M1522.000300'],
+        ['400.000', '400.015', '400.013', '400.020', '400.022', '400.023', '400.024'],
+    ]
+    for sameList in replaceables:
+        if code in sameList:
+            return sameList
+    return [code]
 
 def AdjustCourse(course):
+    semester = course['shtmDetaShtm']
+    if semester == '여름학기':
+        semester = '1학기'
+    if semester == '겨울학기':
+        semester = '2학기'
+    if AdjustCourse.semester_name != course['schyy']+semester:
+        AdjustCourse.semester += 1
+        AdjustCourse.semester_name = course['schyy']+semester
+    name = course['sbjtNm']
     return {
         'code': course['sbjtCd'],
-        'name': course['sbjtNm'],
+        'name': name,
         'hours': course['acqPnt'],
-        'course_type': course['cptnSubmattFgCdNm']
+        'course_type': course['cptnSubmattFgCdNm'],
+        'semester': AdjustCourse.semester,
+        'mandatory': 'false',
+        'done': 'true',
     }
 
 def crawlCourse(username, password):
@@ -50,7 +103,9 @@ def crawlCourse(username, password):
             params={'cscLocale':'ko_KR','strPgmCd':'S030302'}, headers=headers,
             json={"SUN":{"strSchyy":"2016","strShtmFg":"U000200001","strDetaShtmFg":"U000300001","strBdegrSystemFg":"U000100001","strFlag":"all"}}).text
     courses = json.loads(grade_json)
-    result = [AdjustCourse(course) for course in courses['GRD_SCOR401']]
+    AdjustCourse.semester = -1
+    AdjustCourse.semester_name = ''
+    result = [AdjustCourse(course) for course in courses['GRD_SCOR401'] if course['mrksGrdCd'] not in ['F', 'U']]
     dept_json = br.post('https://shine.snu.ac.kr/uni/uni/scor/mrtr/findTabCumlMrksYyShtmClsfTtInq01List2.action',
             params={'cscLocale':'ko_KR','strPgmCd':'S030302'}, headers=headers,
             json={"SUN":{"strSchyy":"2016","strShtmFg":"U000200001","strDetaShtmFg":"U000300001","strBdegrSystemFg":"U000100001","strFlag":"all"}}).text
@@ -58,61 +113,64 @@ def crawlCourse(username, password):
             json={"findUsers":{"rType":"3tier","logType":"systemConn","chgUserYn":"N","chgBfUser":"","chgAfUser":""}}).text
     name = json.loads(user_json)['userInfos'][0]['USERNM']
     dept = json.loads(dept_json)['GRD_SCOR402'][0]
-    majorCourses = [
-        {'name': '컴퓨터프로그래밍', 'x': 10, 'y': 90, 'mandatory': 'true'},
-        {'name': '프로그래밍의 원리', 'x': 170, 'y': 90, 'mandatory': 'false'},
-        {'name': '프로그래밍언어', 'x': 480, 'y': 90, 'mandatory': 'false'},
-        {'name': '소프트웨어 개발의 원리와 실제 ', 'x': 325, 'y': 140, 'mandatory': 'true'},
-        {'name': '소프트웨어공학', 'x': 640, 'y': 150, 'mandatory': 'false'},
-        {'name': '오토마타이론', 'x': 325, 'y': 205, 'mandatory': 'false'},
-        {'name': '컴파일러', 'x': 640, 'y': 205, 'mandatory': 'false'},
-        {'name': '데이터마이닝 개론', 'x': 325, 'y': 260, 'mandatory': 'false'},
-        {'name': '알고리즘', 'x': 480, 'y': 300, 'mandatory': 'true'},
-        {'name': '이산수학', 'x': 10, 'y': 350, 'mandatory': 'true'},
-        {'name': '자료구조', 'x': 170, 'y': 350, 'mandatory': 'true'},
-        {'name': '데이터베이스', 'x': 480, 'y': 350, 'mandatory': 'false'},
-        {'name': '인공지능', 'x': 640, 'y': 385, 'mandatory': 'false'},
-        {'name': '데이터통신', 'x': 480, 'y': 435, 'mandatory': 'false'},
-        {'name': '컴퓨터네트워크', 'x': 640, 'y': 435, 'mandatory': 'false'},
-        {'name': '컴퓨터그래픽스', 'x': 640, 'y': 487, 'mandatory': 'false'},
-        {'name': '공학수학 1', 'x': 10, 'y': 560, 'mandatory': 'true'},
-        {'name': '선형 및 비선형 계산모델', 'x': 325, 'y': 500, 'mandatory': 'false'},
-        {'name': '디지털신호처리', 'x': 325, 'y': 560, 'mandatory': 'false'},
-        {'name': '논리설계', 'x': 10, 'y': 620, 'mandatory': 'true'},
-        {'name': '전기전자회로', 'x': 170, 'y': 595, 'mandatory': 'true'},
-        {'name': '컴퓨터구조', 'x': 170, 'y': 645, 'mandatory': 'true'},
-        {'name': '시스템프로그래밍', 'x': 325, 'y': 645, 'mandatory': 'true'},
-        {'name': '하드웨어시스템설계', 'x': 480, 'y': 595, 'mandatory': 'true'},
-        {'name': '운영체제', 'x': 480, 'y': 645, 'mandatory': 'false'},
+
+    majorCourses = initMajorCourses(int(dept['stuno'][:4]))
+    majors = [[] for _ in range(8)]
+    for course in result:
+        if course['course_type'] in ['전필', '전선']:
+            if course['course_type'] == '전필':
+                course['mandatory'] = 'true'
+            majors[course['semester']].append(course)
+            for replaceableCourse in replaceable(course['code']):
+                for semester in range(len(majorCourses)):
+                    if replaceableCourse in majorCourses[semester]:
+                        majorCourses[semester].remove(replaceableCourse)
+    for semester in range(len(majorCourses)):
+        for code in majorCourses[semester]:
+            course = Course.objects.filter(code=code)[0]
+            majors[semester].append({
+                'code': code,
+                'name': course.name,
+                'hours': course.hours,
+                'semester': semester,
+                'mandatory': 'true',
+                'done': 'false',
+                })
+    must = [
+        [{'semester': 3, 'code': '4190.209'}],
+        [{'semester': 6, 'code': '4190.422'}],
+        [{'semester': 5, 'code': 'M1522.000200'}, {'semester': 6, 'code': 'M1522.000300'}],
     ]
+
+    majorSum = 0
+    majorDoneSum = 0
+    for semester in majors:
+        for course in semester:
+            if course['mandatory'] == 'true':
+                majorSum += int(course['hours'])
+                if course['done'] == 'true':
+                    majorDoneSum += int(course['hours'])
+
+    for i in range(len(must)):
+        flag = False
+        for code in [course['code'] for course in result]:
+            for replaceableCourse in replaceable(code):
+                if replaceableCourse in [course['code'] for course in must[i]]:
+                    flag = True
+        if not flag:
+            for course in must[i]:
+                courseData = Course.objects.filter(code=course['code'])[0]
+                majors[course['semester']].append({
+                    'code': course['code'],
+                    'name': courseData.name,
+                    'hours': courseData.hours,
+                    'semester': course['semester'],
+                    'mandatory': 'true',
+                    'done': 'false',
+                    })
+
     score = sum([course['hours'] for course in result])
-    namelist = [course['name'] for course in result]
-    for majorCourse in majorCourses:
-        if majorCourse['name'] in namelist:
-            majorCourse['done'] = 'true'
-        else:
-            majorCourse['done'] = 'false'
-    general = [course for course in result if course['course_type'] == '교양']
-    for course in general:
-        try:
-            course['area'] = Course.objects.get(pk=course['code']).area.name
-        except Exception:
-            course['area'] = ''
-    general = dict()
-    for area in Area.objects.all():
-        courses = []
-        for course in result:
-            try:
-                if area == Course.objects.get(pk=course['code']).area:
-                    courses.append(course)
-            except Exception:
-                pass
-        if courses:
-            general[area.name] = {
-                'courses': ', '.join([course['name'] for course in courses]),
-                'hours': sum([int(course['hours']) for course in courses]),
-            }
-    return {'courses': result, 'dept': dept['deptNm'], 'stuno': dept['stuno'], 'majorCourses': majorCourses, 'score': score, 'name': name, 'general': general}
+    return {'courses': result, 'dept': dept['deptNm'], 'stuno': dept['stuno'], 'majorCourses': majors, 'score': score, 'name': name, 'general': [], 'majorSum': majorSum, 'majorDoneSum': majorDoneSum}
 
 def login(request):
     if request.method == 'GET':
@@ -130,7 +188,7 @@ def courses(request):
         # return render(request, 'core/courses.html')
         mysnu_username = request.session['mysnu_username']
         mysnu_password = request.session['mysnu_password']
-        return render(request, 'core/result.html', crawlCourse(mysnu_username, mysnu_password))
+        return render(request, 'core/result_horizontal.html', crawlCourse(mysnu_username, mysnu_password))
     return redirect('login')
 
 def coursesJSON(request):

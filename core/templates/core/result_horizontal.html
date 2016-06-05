@@ -1,0 +1,179 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="{% static 'core/style.css' %}">
+    <title>졸업시뮬레이션</title>
+    <script>
+    function roundRect(ctx, x, y, width, height, radius) {
+      radius = {tl: radius, tr: radius, br: radius, bl: radius};
+      ctx.beginPath();
+      ctx.moveTo(x + radius.tl, y);
+      ctx.lineTo(x + width - radius.tr, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+      ctx.lineTo(x + width, y + height - radius.br);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+      ctx.lineTo(x + radius.bl, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+      ctx.lineTo(x, y + radius.tl);
+      ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+    function drawName(ctx, name, x, y, mandatory, done){
+      if (done) {
+        ctx.fillStyle="#d3d3d3";
+      } else {
+        ctx.fillStyle="#ffb6c1"
+      }
+      if (mandatory && !done) {
+        ctx.strokeStyle="#f08080";
+      } else {
+        ctx.strokeStyle="#d3d3d3";
+      }
+      var w = ctx.measureText(name).width + 10;
+      roundRect(ctx, x, y, w, 30, 10);
+      ctx.textAlign="center";
+      ctx.font="bold 12px Arial";
+      if (mandatory) {
+        ctx.strokeStyle="#b22222";
+        ctx.fillStyle="#b22222";
+      } else {
+        ctx.strokeStyle="#000000";
+        ctx.fillStyle="#000000";
+      }
+      ctx.fillText(name, x+w/2, y+20);
+    }
+    </script>
+  </head>
+  <body>
+    <h1>졸업시뮬레이션</h1>
+    <table id="info" style="margin-bottom: 5px">
+      <tr>
+        <td>이름:</td> <td>{{ name }}</td> <td>학과:</td> <td>{{ dept }}</td>
+      </tr>
+      <tr>
+        <td>학번:</td> <td>{{ stuno }}</td> <td>이수학점:</td> <td>{{ score }}</td>
+      </tr>
+    </table>
+
+    <div style="overflow:hidden; margin:20px 5px 10px 5px; height: 50px;">
+      <div style="float:left; margin-left: 20px; width:7%; text-align:right;"><h3>입학</h3></div>
+      <div style="float:right; margin-right: 20px; width:7%;"><h3>졸업>_<</h3> </div>
+      <div id="total" style="overflow: hidden;">
+        <div id="taken"></div>
+      </div>
+    </div>
+
+    <div><canvas id="intro" height="50" width="400"> </canvas></div>
+
+    <div id="left" style="float: left; width: 50%;">
+      <button class = "accordion">
+        전공필수 {{ majorDoneSum }}/{{ majorSum }}
+        <div id="m_total">
+          <div id="m_taken"></div>
+        </div>
+      </button>
+      <div class="panel">
+        1-1<canvas id="major1" style="border:solid 1px gray;"></canvas>
+        1-2<canvas id="major2" style="border:solid 1px gray;"></canvas>
+        2-1<canvas id="major3" style="border:solid 1px gray;"></canvas>
+        2-2<canvas id="major4" style="border:solid 1px gray;"></canvas>
+        3-1<canvas id="major5" style="border:solid 1px gray;"></canvas>
+        3-2<canvas id="major6" style="border:solid 1px gray;"></canvas>
+        4-1<canvas id="major7" style="border:solid 1px gray;"></canvas>
+        4-2<canvas id="major8" style="border:solid 1px gray;"></canvas>
+      </div>
+    </div>
+
+    <div id="right" style="float: right; width: 50%;">
+      <button class = "accordion"> 
+        교양필수 3/30
+        <div id="g_total">
+          <div id="g_taken"></div>
+        </div>
+      </button>
+      <div class="panel">
+        1-1<canvas id="general1" style="border:solid 1px gray;"></canvas>
+        1-2<canvas id="general2" style="border:solid 1px gray;"></canvas>
+        2-1<canvas id="general3" style="border:solid 1px gray;"></canvas>
+        2-2<canvas id="general4" style="border:solid 1px gray;"></canvas>
+        3-1<canvas id="general5" style="border:solid 1px gray;"></canvas>
+        3-2<canvas id="general6" style="border:solid 1px gray;"></canvas>
+        4-1<canvas id="general7" style="border:solid 1px gray;"></canvas>
+        4-2<canvas id="general8" style="border:solid 1px gray;"></canvas>
+      </div>
+    </div>
+
+    <script>
+    var acc = document.getElementsByClassName("accordion");
+    var i;
+    for (i = 0; i < acc.length; i++) {
+      acc[i].onclick = function(){
+        this.classList.toggle("active");
+        this.nextElementSibling.classList.toggle("show");
+      }
+    }
+
+    var taken_score={{ score }}; var total_score=130;
+    var m_taken_s = {{ majorDoneSum }}; var m_total_s = {{ majorSum }};
+    var g_taken_s = 20; var g_total_s = 40
+    document.getElementById("taken").style.width = taken_score/total_score*100 + '%';
+    document.getElementById("m_taken").style.width = m_taken_s/m_total_s*100 + '%';
+    document.getElementById("g_taken").style.width = g_taken_s/g_total_s*100 + '%';
+
+    var canvas = document.getElementById("intro");
+    var ctx = canvas.getContext("2d");
+    drawName(ctx, "기이수 전공필수", 1, 5, true, true);
+    drawName(ctx, "기이수 전공선택", 100, 5, false, true);
+    drawName(ctx, "미이수 전공필수", 200, 5, true, false);
+    drawName(ctx, "미이수 전공선택", 300, 5, false, false);
+
+    {% for semester in majorCourses %}
+      var canvas = document.getElementById("major"+{{ forloop.counter }});
+      var ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth * 0.47;
+      var height = 40;
+      var x = 0;
+      {% for course in semester %}
+      var prev_x = x;
+      x += ctx.measureText("{{ course.name }}").width + 15;
+      if (x > canvas.width) {
+        x = 0;
+        prev_x = 0;
+        height += 35;
+      }
+      {% endfor %}
+      canvas.height = height;
+      var x = 0;
+      var y = 5;
+
+      {% for course in semester %}
+      var prev_x = x;
+      x += ctx.measureText("{{ course.name }}").width + 15;
+      if (x > canvas.width) {
+        x = 0;
+        prev_x = 0;
+        y += 35;
+      }
+      drawName(ctx, "{{ course.name }}", prev_x, y, {{ course.mandatory }}, {{ course.done }});
+      {% endfor %}
+    {% endfor %}
+
+    var canvas = document.getElementById("general"+i);
+    var ctx = canvas.getContext("2d");
+    var count = 5;
+    var count_per_line = 8;
+    canvas.height = 30 * Math.ceil(count/count_per_line) + 10;
+    canvas.width = window.innerWidth * 0.47;
+
+    drawName(ctx, "class1", 1, 5, true, true);
+    drawName(ctx, "class2", 80, 5, false, true);
+    drawName(ctx, "class3", 160, 5, true, false);
+    drawName(ctx, "class4", 240, 5, false, false);
+    </script>
+  </body>
+</html>

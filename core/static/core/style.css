@@ -1,0 +1,108 @@
+body {
+	background-color: white;
+}
+
+h1 {
+	color: navy;
+}
+
+#id {
+	height: 30px;	
+	border: 2px solid navy;
+}
+
+#pw {
+	height: 30px;	
+	border: 2px solid navy;
+}
+
+#button {
+	height: 50px;	
+}
+
+#total{
+	position: relative;
+	width: 80%;
+	height: 30px;
+	border: solid;
+	border-color: lightgray;
+	background-color: white;
+	margin: auto;
+}
+
+#taken{
+	position: absolute;
+	width: 0%;
+	height: 100%;
+	background-color: pink;
+	margin: auto;
+}
+
+
+#m_total{
+	position: relative;
+	width: 80%;
+	height: 30px;
+	border: solid;
+	border-color: lightgray;
+	background-color: white;
+	margin: auto;
+}
+
+#m_taken{
+	position: absolute;
+	width: 0%;
+	height: 100%;
+	background-color: lightblue;
+	margin: auto;
+}
+
+#g_total{
+	position: relative;
+	width: 80%;
+	height: 30px;
+	border: solid;
+	border-color: lightgray;
+	background-color: white;
+	margin: auto;
+}
+
+#g_taken{
+	position: absolute;
+	width: 0%;
+	height: 100%;
+	background-color: lightblue;
+	margin: auto;
+}
+
+
+button.accordion {
+	background-color: #eee;
+	color: #444;
+	cursor: pointer;
+	padding: 18px;
+	width: 100%;
+	text-align: left;
+	border: solid 1px white;
+	outline: none;
+	transition: 0.4s;
+}
+
+button.accordion.active, button.accordion:hover {
+	background-color: #ddd;
+}
+
+div.panel {
+	padding: 0 18px;
+	background-color: white;
+	max-height: 0;
+	overflow: hidden;
+	transition: 0.6s ease-in-out;
+	opacity: 0;
+}
+
+div.panel.show {
+	opacity: 1;
+	max-height: 700px;
+}
+
