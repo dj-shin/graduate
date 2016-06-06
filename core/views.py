@@ -73,6 +73,42 @@ def AdjustCourse(course):
         'done': 'true',
     }
 
+def initGeneralCourses(year):
+    return [
+        [
+            {'name': '외국어', 'subarea': '외국어', 'count': 1},
+            {'name': '수학 및 연습1', 'course': ['수학 및 연습 1', '고급수학 및 연습 1']},
+            {'name': '과학적 사고와 실험', 'course': ['물리학 1', '물리학 2', '화학 1', '화학 2', '생물학 1', '생물학 2', '물리학', '화학', '생물학'], 'amount': 8},
+            {'name': '컴퓨터의 개념 및 실습', 'course': ['컴퓨터의 개념 및 실습']}
+        ],
+        [
+            {'name': '글쓰기의 기초', 'course': ['글쓰기의 기초', '과학과 기술 글쓰기']},
+            {'name': '수학 및 연습2', 'course': ['수학 및 연습 2', '고급수학 및 연습 2']},
+            {'name': '공학수학 1', 'course': ['공학수학 1']},
+            {'name': '과학적 사고와 실험', 'course': ['물리학 1', '물리학 2', '화학 1', '화학 2', '생물학 1', '생물학 2', '물리학', '화학', '생물학'], 'amount': 4},
+        ],
+        [
+            {'name': '공학수학 2', 'course': ['공학수학 2']},
+        ],
+        [
+            {'name': '통계학', 'course': ['통계학']},
+            {'name': '통계학실험', 'course': ['통계학실험']},
+        ],
+        [
+            {'name': '외국어', 'subarea': '외국어', 'count': 1},
+            {'name': '학문의 세계', 'area': '학문의 세계', 'hours': 3},
+        ],
+        [
+            {'name': '학문의 세계', 'area': '학문의 세계', 'hours': 3},
+        ],
+        [
+            {'name': '사회성 교과목군', 'course': ['기술과 기업', '창업과 경제', '기술과 경제', '공학윤리와 리더십', '특허와 기술창업', '기술과 창업', '현대기술과 윤리적 사고', '공학기술의 역사', '공학인을 위한 경영'], 'subarea': '인간과 사회', 'hours': 3},
+        ],
+        [
+            {'name': '창의성 교과목군', 'course': ['현대도시건축산책', '창조와 디자인', '테크놀러지와 예술: 전시예술공학', '소리의 과학과 악기제작 체험', '창의공학설계', '디지털아트공학', '공학도를 위한 창의적 사고'], 'subarea': '문화와 예술', 'hours': 3},
+        ],
+    ]
+
 def crawlCourse(username, password):
     br = mechanicalsoup.Browser()
     login_page = br.get('http://my.snu.ac.kr/mysnu/portal/MS010/MAIN')
@@ -119,7 +155,10 @@ def crawlCourse(username, password):
     for course in result:
         if course['course_type'] in ['전필', '전선']:
             if course['course_type'] == '전필':
-                course['mandatory'] = 'true'
+                course['mandatory'] = '1'
+                for replaceableCourse in replaceable(course['code']):
+                    if replaceableCourse in [j for i in majorCourses for j in i]:
+                        course['mandatory'] = 'true'
             majors[course['semester']].append(course)
             for replaceableCourse in replaceable(course['code']):
                 for semester in range(len(majorCourses)):
@@ -168,6 +207,21 @@ def crawlCourse(username, password):
                     'mandatory': 'true',
                     'done': 'false',
                     })
+
+    # 교양
+    generalCourses = initGeneralCourses(int(dept['stuno'][:4]))
+    generals = [[] for _ in range(8)]
+    for semester in range(len(generalCourses)):
+        for rule in generalCourses[semester]:
+            if 'area' in rule:
+                areaList = [course.code for course in Course.objects.filter(area=rule['area'])]
+                for course in result:
+                    if course['code'] in areaList:
+                        pass
+            if 'subarea' in rule:
+                pass
+            if 'course' in rule:
+                pass
 
     score = sum([course['hours'] for course in result])
     return {'courses': result, 'dept': dept['deptNm'], 'stuno': dept['stuno'], 'majorCourses': majors, 'score': score, 'name': name, 'general': [], 'majorSum': majorSum, 'majorDoneSum': majorDoneSum}

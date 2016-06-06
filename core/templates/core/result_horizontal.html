@@ -38,7 +38,11 @@
       roundRect(ctx, x, y, w, 30, 10);
       ctx.textAlign="center";
       ctx.font="bold 12px Arial";
-      if (mandatory) {
+      if (mandatory === 1) {
+        ctx.strokeStyle="#0000ff";
+        ctx.fillStyle="#0000ff";
+      }
+      else if (mandatory) {
         ctx.strokeStyle="#b22222";
         ctx.fillStyle="#b22222";
       } else {
