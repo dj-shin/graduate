@@ -1,9 +1,8 @@
-{% load staticfiles %}
 <!DOCTYPE html>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <html>
   <head>
-    <link rel="stylesheet" type="text/css" href="{% static 'core/style.css' %}">
+    <link rel="stylesheet" type="text/css" href="style.css">
     <title>졸업시뮬레이션</title>
     <style>
     td { 
@@ -13,7 +12,6 @@
   </head>
 
   <body>
-    <span style="float:right; margin-right: 20px; font-size: 1.2em;"><a href="{% url 'logout' %}">로그아웃</a></span>
     <h1>졸업시뮬레이션</h1>
     <table id="info" style="margin-bottom: 5px">
       <tr>
@@ -32,33 +30,25 @@
       </div>
     </div>
 
-    <div> 미이수 과목에 마우스를 대면 세부정보가 나옵니다. </div>
-      <div>
-      <div id="left" style="float: left; width: 50%;">
-        <button class = "accordion">
-          <div style="float:left" >전공필수 {{ majorDoneSum }}/{{ majorSum }}</div>
-          <div style="float:right" id="m_total">
-            <div id="m_taken"></div>
-          </div>
-          <div style="clear: both; text-align: center;">클릭하여 과목을 볼 수 있습니다.</div>
-        </button>
-        <div class="panel" id="major"> </div>
-        <div id="intro1"> </div>
-        <div id="intro2"> </div>
-      </div>
-
-      <div id="right" style="float: right; width: 50%;">
-        <button class = "accordion"> 
-          <div style="float:left">교양필수 {{ generalDoneSum }}/{{ generalSum }}</div>
-          <div style="float:right" id="g_total">
-            <div id="g_taken"></div>
-          </div>
-          <div style="clear: both; text-align: center;">클릭하여 과목을 볼 수 있습니다.</div>
-        </button>
-        <div class="panel" id="general"> </div>
-      </div>
+    <div id="left" style="float: left; width: 50%;">
+      <button class = "accordion">
+        전공필수 {{ majorDoneSum }}/{{ majorSum }}
+        <div id="m_total">
+          <div id="m_taken"></div>
+        </div>
+      </button>
+      <div class="panel" id="major"> </div>
     </div>
 
+    <div id="right" style="float: right; width: 50%;">
+      <button class = "accordion"> 
+        교양필수 {{ generalDoneSum }}/{{ generalSum }}
+        <div id="g_total">
+          <div id="g_taken"></div>
+        </div>
+      </button>
+      <div class="panel" id="general"> </div>
+    </div>
 
     <script>
 var acc = document.getElementsByClassName("accordion");
@@ -77,7 +67,7 @@ document.getElementById("taken").style.width = taken_score/total_score*100 + '%'
 document.getElementById("m_taken").style.width = m_taken_s/m_total_s*100 + '%';
 document.getElementById("g_taken").style.width = g_taken_s/g_total_s*100 + '%';
 
-function drawName(container, name, mandatory, done, act, info){
+function drawName(container, name, mandatory, done){
   var child = document.createElement("button");
   child.innerHTML = name;
   child.style.display = "inline-block";
@@ -86,7 +76,7 @@ function drawName(container, name, mandatory, done, act, info){
   child.style.color = "black";
   child.style.border = "3px solid #d3d3d3";
   child.style.background = "#d3d3d3";
-  if (act) child.setAttribute("title", info);
+  child.style.cursor = "pointer";
   if (mandatory) {
     child.style.color = "#b22222";
     if (!done) child.style.borderColor = "#f08080";
@@ -99,44 +89,39 @@ function drawName(container, name, mandatory, done, act, info){
 var major = document.getElementById("major");
 {% for semester in majorCourses %}
   var div = document.createElement("div");
-  div.innerHTML = Math.ceil({{ forloop.counter }}/2) + "-" + (({{ forloop.counter }}+1)%2+1);
+  div.innerHTML = Math.ceil({{ forloop.counter }}/2) + "-" + (({{ forloop.counter }}}+1)%2+1);
   major.appendChild(div);
 
   var major_i = document.createElement("div");
   major_i.style.width = "100%";
   major_i.style.border = "solid 1px gray";
+  major_i.style.height = "40px";
 
   {% for course in semester %}
-    drawName(major_i, "{{ course.name }}", {{ course.mandatory }}, {{ course.done }}, {{ course.act }}, "{{ course.info }}");
+    drawName(major_i, "{{ course.name }}", {{ course.mandatory }}, {{ course.done }});
   {% endfor %}
-  major_i.style.height = "auto";
 
   major.appendChild(major_i);
 {% endfor %}
 
-var general = document.getElementById("general");
-{% for semester in generals %}
+var major = document.getElementById("general");
+{% for semester in majorCourses %}
   var div = document.createElement("div");
   div.innerHTML = Math.ceil({{ forloop.counter }}/2) + "-" + (({{ forloop.counter }}+1)%2+1);
-  general.appendChild(div);
+  major.appendChild(div);
 
   var general_i = document.createElement("div");
   general_i.style.width = "100%";
   general_i.style.border = "solid 1px gray";
+  general_i.style.height = "40px";
 
   {% for course in semester %}
-    drawName(general_i, "{{ course.name }}", {{ course.mandatory }}, {{ course.done }}, {{ course.act }}, "{{ course.info }}");
+    drawName(major_i, "{{ course.name }}", {{ course.mandatory }}, {{ course.done }});
   {% endfor %}
-  general_i.style.height = "auto";
 
-  general.appendChild(general_i);
+  major.appendChild(general_i);
 {% endfor %}
 
-var intro = document.getElementById("intro");
-	drawName(intro1, "이것은 이수한 필수과목입니다.", true, true);
-	drawName(intro1, "이것은 이수한 선택과목입니다.", false, true);
-	drawName(intro2, "이것은 미이수 필수과목입니다.", true, false);
-	drawName(intro2, "이것은 미이수 선택과목입니다.", false, false);
     </script>
   </body>
 </html>

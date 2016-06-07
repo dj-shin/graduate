@@ -7,17 +7,20 @@ h1 {
 }
 
 #id {
-	height: 30px;	
+	height: 50px;	
 	border: 2px solid navy;
+  font-size: 1.2em;
 }
 
 #pw {
-	height: 30px;	
+	height: 50px;	
 	border: 2px solid navy;
+  font-size: 1.2em;
 }
 
 #button {
 	height: 50px;	
+  font-size: 1.2em;
 }
 
 #total{
@@ -34,7 +37,7 @@ h1 {
 	position: absolute;
 	width: 0%;
 	height: 100%;
-	background-color: pink;
+	background-color: lightblue;
 	margin: auto;
 }
 
@@ -42,7 +45,7 @@ h1 {
 #m_total{
 	position: relative;
 	width: 80%;
-	height: 30px;
+	height: 20px;
 	border: solid;
 	border-color: lightgray;
 	background-color: white;
@@ -59,8 +62,8 @@ h1 {
 
 #g_total{
 	position: relative;
-	width: 80%;
-	height: 30px;
+	width: 75%;
+	height: 20px;
 	border: solid;
 	border-color: lightgray;
 	background-color: white;
@@ -103,6 +106,8 @@ div.panel {
 
 div.panel.show {
 	opacity: 1;
-	max-height: 700px;
+	max-height: 500px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 

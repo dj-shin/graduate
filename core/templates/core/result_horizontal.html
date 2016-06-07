@@ -34,7 +34,7 @@
       } else {
         ctx.strokeStyle="#d3d3d3";
       }
-      var w = ctx.measureText(name).width + 10;
+      var w = ctx.measureText(name).width * 1.1 + 10;
       roundRect(ctx, x, y, w, 30, 10);
       ctx.textAlign="center";
       ctx.font="bold 12px Arial";
@@ -73,7 +73,7 @@
     <div style="overflow:hidden; margin:20px 5px 10px 5px; height: 50px;">
       <div style="float:left; margin-left: 20px; width:7%; text-align:right;"><h3>입학</h3></div>
       <div style="float:right; margin-right: 20px; width:7%;"><h3>졸업>_<</h3> </div>
-      <div id="total" style="overflow: hidden;">
+      <div id="total" style="overflow: hidden; margin-top: 12px;">
         <div id="taken"></div>
       </div>
     </div>
@@ -101,7 +101,7 @@
 
     <div id="right" style="float: right; width: 50%;">
       <button class = "accordion"> 
-        교양필수 3/30
+        교양필수 {{ generalDoneSum }}/{{ generalSum }}
         <div id="g_total">
           <div id="g_taken"></div>
         </div>
@@ -130,7 +130,7 @@
 
     var taken_score={{ score }}; var total_score=130;
     var m_taken_s = {{ majorDoneSum }}; var m_total_s = {{ majorSum }};
-    var g_taken_s = 20; var g_total_s = 40
+    var g_taken_s = {{ generalDoneSum }}; var g_total_s = {{ generalSum }};
     document.getElementById("taken").style.width = taken_score/total_score*100 + '%';
     document.getElementById("m_taken").style.width = m_taken_s/m_total_s*100 + '%';
     document.getElementById("g_taken").style.width = g_taken_s/g_total_s*100 + '%';
@@ -151,7 +151,7 @@
       var prev_x;
       {% for course in semester %}
       prev_x = x;
-      x += ctx.measureText("{{ course.name }}").width + 15;
+      x += ctx.measureText("{{ course.name }}").width * 1.1 + 15;
       if (x > canvas.width * 0.8) {
         x = 0;
         height += 35;
@@ -165,7 +165,7 @@
       {% for course in semester %}
       prev_x = x;
       prev_y = y;
-      x += ctx.measureText("{{ course.name }}").width + 15;
+      x += ctx.measureText("{{ course.name }}").width * 1.1 + 15;
       if (x > canvas.width * 0.8) {
         x = 0;
         y += 35;
@@ -182,7 +182,7 @@
       var x = 0;
       var prev_x, prev_y;
       {% for course in semester %}
-      x += ctx.measureText("{{ course.name }}").width + 15;
+      x += ctx.measureText("{{ course.name }}").width * 1.1 + 15;
       if (x > canvas.width * 0.8) {
         x = 0;
         height += 35;
@@ -195,7 +195,7 @@
       {% for course in semester %}
       prev_x = x;
       prev_y = y;
-      x += ctx.measureText("{{ course.name }}").width + 15;
+      x += ctx.measureText("{{ course.name }}").width * 1.1 + 15;
       if (x > canvas.width * 0.8) {
         x = 0;
         y += 35;

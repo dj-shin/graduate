@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html>
+
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+	<title>졸업시뮬레이션</title>
+<style>
+td { 
+	width: 150px;
+}
+</style>
+</head>
+
+<body>
+	<h1>졸업시뮬레이션</h1>
+	<div>
+	<span>이름:</span> <span>name</span> <span>학과:</span> <span>컴퓨터공학부</span> <span>학번:</span> <span>2013-39393</span>
+	</div>
+	<div>
+	<span>총 이수학점</span> <span>전필 이수학점</span> <span>전선 이수학점</span> <span>교양 이수학점</span>
+	</div>
+	<div>
+	<span>1/2</span> <span>1/2<span> <span>1/최소 2</span> <span>1/2</span>
+	</div>
+
+	<div style="overflow:hidden; margin:20px 5px 10px 5px; height: 50px;">
+	<div style="float:left; margin-left: 20px; width:7%; text-align:right;"><h3>입학</h3></div>
+	<div style="float:right; margin-right: 20px; width:7%;"><h3>졸업>_<</h3> </div>
+	<div id="total" style="overflow: hidden;">
+		<div id="taken"></div>
+	</div>
+	</div>
+
+	<div> 미이수 과목에 마우스를 대면 세부정보가 나옵니다. </div>
+	<div id="left" style="float: left; width: 50%;">
+		<button class = "accordion">
+			<div style="float:left" >전공필수 17/32</div>
+			<div style="float:right" id="m_total">
+				<div id="m_taken"></div>
+			</div>
+			<div style="clear: both; text-align: center;">클릭하여 과목을 볼 수 있습니다.</div>
+		</button>
+		<div class="panel" id="major"> </div>
+	</div>
+	
+	<div id="right" style="float: right; width: 50%;">
+		<button class = "accordion"> 
+			<div style="float:left">교양필수 50/최소 55</div>
+			<div style="float:right" id="g_total">
+				<div id="g_taken"></div>
+			</div>
+			<div style="clear: both; text-align: center;">클릭하여 과목을 볼 수 있습니다.</div>
+		</button>
+		<div class="panel" id="general"> </div>
+	</div>
+
+	<div id="intro"> </div>
+
+<script>
+var acc = document.getElementsByClassName("accordion");
+var i;
+for (i = 0; i < acc.length; i++) {
+	acc[i].onclick = function(){
+		this.classList.toggle("active");
+		this.nextElementSibling.classList.toggle("show");
+	}
+}
+
+var taken_score=87; var total_score=130;
+var m_taken_s = 17; var m_total_s = 32;
+var g_taken_s = 53; var g_total_s = 60;
+document.getElementById("taken").style.width = taken_score/total_score*100 + '%';
+document.getElementById("m_taken").style.width = m_taken_s/m_total_s*100 + '%';
+document.getElementById("g_taken").style.width = g_taken_s/g_total_s*100 + '%';
+
+function drawName(container, name, mandatory, done, act, info){
+	var child = document.createElement("button");
+	child.innerHTML = name;
+	child.style.display = "inline-block";
+	child.style.margin = "5px";
+	child.style.borderRadius =  "5px";
+	child.style.color = "black";
+	child.style.border = "3px solid #d3d3d3";
+	child.style.background = "#d3d3d3";
+	child.style.cursor = "pointer";
+	if (act) child.setAttribute("title", info);
+	if (mandatory) {
+		child.style.color = "#b22222";
+		if (!done) child.style.borderColor = "#f08080";
+	} 
+	if (!done) child.style.background = "#ffb6c1";
+	if (mandatory === 1) child.style.color = "blue";
+	container.appendChild(child);
+}
+
+var major = document.getElementById("major");
+for (i=1; i<9; i++) {
+	var div = document.createElement("div");
+	div.innerHTML = Math.ceil(i/2) + "-" + ((i+1)%2+1);
+	major.appendChild(div);
+
+	var major_i = document.createElement("div");
+	major_i.style.width = "100%";
+	major_i.style.border = "solid 1px gray";
+	major_i.style.height = "40px";
+	
+	drawName(major_i, "class name", true, true);
+	drawName(major_i, "class name", false, true);
+	drawName(major_i, "class name", true, false);
+	drawName(major_i, "class name", false, false, true, "something\ndkls");
+	
+	major.appendChild(major_i);
+}
+
+var major = document.getElementById("general");
+for (i=1; i<9; i++) {
+	var div = document.createElement("div");
+	div.innerHTML = Math.ceil(i/2) + "-" + ((i+1)%2+1);
+	major.appendChild(div);
+
+	var general_i = document.createElement("div");
+	general_i.style.width = "100%";
+	general_i.style.border = "solid 1px gray";
+	general_i.style.height = "40px";
+	
+	drawName(general_i, "class name", true, true);
+	drawName(general_i, "class name", false, true);
+	drawName(general_i, "class name", true, false);
+	drawName(general_i, "class name", false, false);
+	
+	major.appendChild(general_i);
+}
+
+/*new*/
+var intro = document.getElementById("intro");
+	drawName(intro, "이것은 이수한 필수과목입니다.", true, true);
+	drawName(intro, "이것은 이수한 선택과목입니다.", false, true);
+	drawName(intro, "이것은 미이수 필수과목입니다.", true, false);
+	drawName(intro, "이것은 미이수 선택과목입니다.", false, false);
+/*new*/
+
+</script>
+</body>
+</html>

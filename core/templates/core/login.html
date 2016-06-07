@@ -1,16 +1,41 @@
+{% load staticfiles %}
 <!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <html>
   <head>
-    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="{% static 'core/style.css' %}">
+    <style>
+    body {
+      padding-top: 100px;
+    }
+    input {
+      width: 300px;
+    }
+    div {	
+      margin-bottom: 20px;
+    }
+    #login-form {
+      text-align: center;
+    }
+    </style>
+    <title>졸업시뮬레이션</title>
   </head>
   <body>
-    <form action="{% url 'login' %}" method="post">
-      <h3>MySNU 정보 입력</h3>
-      <p>계정 정보는 마이스누에서 이수 과목 정보를 불러오는 데만 사용되며, 어떤 방식으로든 보관되지 않습니다</p>
-      <label for="username">ID: </label><input type="text" name="username">
-      <label for="password">Password: </label><input type="password" name="password">
-      <input type="submit">
+    {% if alert %}
+    <script>alert('계정 정보가 잘못되었습니다')</script>
+    {% endif %}
+    <h1 style="font-size: 36pt; margin-bottom: 50px" align="center">졸업시뮬레이션</h1>
+    <p align="center">※ 마이스누 계정 정보는 이수과목 정보를 가져오는 데에만 사용되며, 어떠한 방식으로든 저장되지 않습니다</p>
+    <form id="login-form" action="{% url 'login' %}" method="post">
+      <input type="text" id="id" name="username" placeholder="mysnu ID를 입력하세요" autofocus />
+      <div>
+      </div>
+      <input type="password" id="pw" name="password" placeholder="mysnu 비밀번호를 입력하세요" />
+      <div>
+      </div>
+      <div> <input id="button" type="submit" value="mysnu 계정으로 로그인"> </div>
       <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     </form>
   </body>
+
 </html>
