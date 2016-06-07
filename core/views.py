@@ -5,6 +5,8 @@ from core.models import Course
 import json
 from bs4 import BeautifulSoup as bs
 import mechanicalsoup
+import requests
+import pprint
 
 
 def initMajorCourses(year):
@@ -62,7 +64,7 @@ def AdjustCourse(course):
     if AdjustCourse.semester_name != course['schyy']+semester:
         AdjustCourse.semester += 1
         AdjustCourse.semester_name = course['schyy']+semester
-    name = course['sbjtNm']
+    name = course['sbjtNm'].strip()
     return {
         'code': course['sbjtCd'],
         'name': name,
@@ -73,41 +75,143 @@ def AdjustCourse(course):
         'done': 'true',
     }
 
+def flatRule(l):
+    result = []
+    for i in range(len(l)):
+        for rule in l[i]:
+            rule['semester'] = i
+            result.append(rule)
+    result.sort(key=lambda x: x['priority'] if 'priority' in x else 0, reverse=True)
+    return result
+
 def initGeneralCourses(year):
-    return [
-        [
-            {'name': '외국어', 'subarea': '외국어', 'count': 1},
-            {'name': '수학 및 연습1', 'course': ['수학 및 연습 1', '고급수학 및 연습 1']},
-            {'name': '과학적 사고와 실험', 'course': ['물리학 1', '물리학 2', '화학 1', '화학 2', '생물학 1', '생물학 2', '물리학', '화학', '생물학'], 'amount': 8},
-            {'name': '컴퓨터의 개념 및 실습', 'course': ['컴퓨터의 개념 및 실습']}
-        ],
-        [
-            {'name': '글쓰기의 기초', 'course': ['글쓰기의 기초', '과학과 기술 글쓰기']},
-            {'name': '수학 및 연습2', 'course': ['수학 및 연습 2', '고급수학 및 연습 2']},
-            {'name': '공학수학 1', 'course': ['공학수학 1']},
-            {'name': '과학적 사고와 실험', 'course': ['물리학 1', '물리학 2', '화학 1', '화학 2', '생물학 1', '생물학 2', '물리학', '화학', '생물학'], 'amount': 4},
-        ],
-        [
-            {'name': '공학수학 2', 'course': ['공학수학 2']},
-        ],
-        [
-            {'name': '통계학', 'course': ['통계학']},
-            {'name': '통계학실험', 'course': ['통계학실험']},
-        ],
-        [
-            {'name': '외국어', 'subarea': '외국어', 'count': 1},
-            {'name': '학문의 세계', 'area': '학문의 세계', 'hours': 3},
-        ],
-        [
-            {'name': '학문의 세계', 'area': '학문의 세계', 'hours': 3},
-        ],
-        [
-            {'name': '사회성 교과목군', 'course': ['기술과 기업', '창업과 경제', '기술과 경제', '공학윤리와 리더십', '특허와 기술창업', '기술과 창업', '현대기술과 윤리적 사고', '공학기술의 역사', '공학인을 위한 경영'], 'subarea': '인간과 사회', 'hours': 3},
-        ],
-        [
-            {'name': '창의성 교과목군', 'course': ['현대도시건축산책', '창조와 디자인', '테크놀러지와 예술: 전시예술공학', '소리의 과학과 악기제작 체험', '창의공학설계', '디지털아트공학', '공학도를 위한 창의적 사고'], 'subarea': '문화와 예술', 'hours': 3},
-        ],
-    ]
+    creative = ['현대도시건축산책', '창조와 디자인', '테크놀러지와 예술: 전시예술공학', '소리의 과학과 악기제작 체험', '창의공학설계', '디지털아트공학', '공학도를 위한 창의적 사고']
+    social = ['기술과 기업', '창업과 경제', '기술과 경제', '공학윤리와 리더십', '특허와 기술창업', '기술과 창업', '현대기술과 윤리적 사고', '공학기술의 역사', '공학인을 위한 경영']
+    science = ['물리학 1', '물리학 2', '화학 1', '화학 2', '생물학 1', '생물학 2', '물리학', '화학', '생물학', '물리의 기본 1', '물리의 기본 2', '고급물리학 1', '고급물리학 2', '물리학실험', '물리학실험 1', '물리학실험 2', '화학실험 1', '화학실험 2', '화학실험', '생물학실험 1', '생물학실험 2', '생물학실험']
+    advance_eng = ['고급영어: 영어권 문화의 이해', '고급영어학술발표', '고급영어: 영화', '고급영어: 시사토론', '고급영어학술작문', '고급영어: 문화와 사회', '고급영어: 연극을 통한 영어연습', '고급영어: 발표', '고급영어: 학술작문', '고급영어: 연극', '고급영어: 문학', '고급영어: 영상예술', '고급영어: 산문']
+    eng2 = ['대학영어 2: 글쓰기', '대학영어 2: 말하기']
+    if year >= 2015:
+        return [
+            [
+                {'name': '[외국어]', 'subarea': '외국어', 'count': 1, 'hours': 2},
+                {'name': '수학 및 연습1', 'course': ['수학 및 연습 1', '고급수학 및 연습 1'], 'hours': 3},
+                {'name': '[과학적 사고와 실험]', 'course': science, 'amount': 8, 'hours': 8, 'fullamount': 8},
+                {'name': '컴퓨터의 개념 및 실습', 'course': ['컴퓨터의 개념 및 실습'], 'hours': 3}
+            ],
+            [
+                {'name': '글쓰기의 기초', 'course': ['글쓰기의 기초', '과학과 기술 글쓰기', '대학국어'], 'hours': 3},
+                {'name': '수학 및 연습2', 'course': ['수학 및 연습 2', '고급수학 및 연습 2'], 'hours': 3},
+                {'name': '공학수학 1', 'course': ['공학수학 1'], 'hours': 3},
+                {'name': '[과학적 사고와 실험]', 'course': science, 'amount': 4, 'hours': 4, 'fullamount': 4},
+            ],
+            [
+                {'name': '공학수학 2', 'course': ['공학수학 2'], 'hours': 3},
+            ],
+            [
+                {'name': '통계학', 'course': ['통계학'], 'hours': 3},
+                {'name': '통계학실험', 'course': ['통계학실험'], 'hours': 3},
+            ],
+            [
+                {'name': '[외국어]', 'subarea': '외국어', 'count': 1, 'hours': 2},
+                {'name': '[학문의 세계]', 'area': '학문의 세계', 'hours': 3},
+            ],
+            [
+                {'name': '[학문의 세계]', 'area': '학문의 세계', 'hours': 3},
+            ],
+            [
+                {'name': '[사회성 교과목군]', 'course': social, 'subarea': '인간과 사회', 'hours': 3, 'priority': 1},
+            ],
+            [
+                {'name': '[창의성 교과목군]', 'course': creative, 'subarea': '문화와 예술', 'hours': 3, 'priority': 1},
+            ],
+        ]
+    if year == 2014:
+        return [
+            [
+                {'name': '외국어', 'subarea': '외국어', 'count': 1, 'hours': 3},
+                {'name': '수학 및 연습1', 'course': ['수학 및 연습 1', '고급수학 및 연습 1'], 'hours': 3},
+                {'name': '[과학적 사고와 실험]', 'course': science, 'amount': 8, 'hours': 8, 'fullamount': 8},
+                {'name': '컴퓨터의 개념 및 실습', 'course': ['컴퓨터의 개념 및 실습'], 'hours': 3}
+            ],
+            [
+                {'name': '글쓰기의 기초', 'course': ['글쓰기의 기초', '과학과 기술 글쓰기', '대학국어'], 'hours': 3},
+                {'name': '수학 및 연습2', 'course': ['수학 및 연습 2', '고급수학 및 연습 2'], 'hours': 3},
+                {'name': '공학수학 1', 'course': ['공학수학 1'], 'hours': 3},
+                {'name': '[과학적 사고와 실험]', 'course': science, 'amount': 4, 'hours': 4, 'fullamount': 4},
+            ],
+            [
+                {'name': '공학수학 2', 'course': ['공학수학 2'], 'hours': 3},
+            ],
+            [
+                {'name': '통계학', 'course': ['통계학'], 'hours': 3},
+                {'name': '통계학실험', 'course': ['통계학실험'], 'hours': 3},
+            ],
+            [
+                {'name': '[외국어]', 'subarea': '외국어', 'count': 1, 'hours': 2},
+                {'name': '[학문의 세계]', 'area': '학문의 세계', 'hours': 3},
+            ],
+            [
+                {'name': '[학문의 세계]', 'area': '학문의 세계', 'hours': 3},
+            ],
+            [
+                {'name': '[사회성 교과목군]', 'course': social, 'subarea': '인간과 사회', 'hours': 3, 'priority': 1},
+            ],
+            [
+                {'name': '[창의성 교과목군]', 'course': creative, 'subarea': '문화와 예술', 'hours': 3, 'priority': 1},
+            ],
+        ]
+    if year == 2013:
+        return [
+            [
+                {'name': '대학영어 1', 'course': ['대학영어 1'], 'hours': 2},
+                {'name': '수학 및 연습1', 'course': ['수학 및 연습 1', '고급수학 및 연습 1'], 'hours': 3},
+                {'name': '[과학적 사고와 실험]', 'course': science + ['통계학', '통계학실험'], 'amount': 8, 'hours': 8, 'fullamount': 8},
+                {'name': '컴퓨터의 개념 및 실습', 'course': ['컴퓨터의 개념 및 실습'], 'hours': 3}
+            ],
+            [
+                {'name': '대학국어', 'course': ['대학국어'], 'hours': 3},
+                {'name': '수학 및 연습2', 'course': ['수학 및 연습 2', '고급수학 및 연습 2'], 'hours': 3},
+                {'name': '공학수학 1', 'course': ['공학수학 1'], 'hours': 3},
+                {'name': '[과학적 사고와 실험]', 'course': science + ['통계학', '통계학실험'], 'amount': 8, 'hours': 8, 'fullamount': 8},
+            ],
+            [
+                {'name': '[핵심교양-문학과예술]', 'subarea': '문학과 예술', 'hours': 3},
+                {'name': '공학수학 2', 'course': ['공학수학 2'], 'hours': 3},
+            ],
+            [
+                {'name': '대학영어2 또는 고급영어', 'course': eng2+advance_eng, 'hours': 2},
+                {'name': '[핵심교양-역사와철학]', 'subarea': '역사와 철학', 'hours': 3},
+            ],
+            [
+                {'name': '[핵심교양-사회와이념]', 'subarea': '사회와 이념', 'hours': 3},
+            ],
+            [
+            ],
+            [
+                {'name': '[사회성 교과목군]', 'course': social, 'hours': 3, 'priority': 1},
+            ],
+            [
+                {'name': '[창의성 교과목군]', 'course': creative, 'hours': 3, 'priority': 1},
+            ],
+        ]
+
+def cseCrawl():
+    url = 'http://cse.snu.ac.kr/undergraduate/courses'
+    r = requests.get(url)
+    soup = bs(r.text, 'html5lib')
+    table = soup.table
+    result = []
+    for course in table.tbody.find_all('tr'):
+        extract = []
+        for td in course.find_all('td'):
+            content = td.string
+            if content != None:
+                content = content.strip()
+            if td.a != None:
+                content = td.a.string.strip()
+            extract.append(content)
+        result.append({'code': extract[1], 'name': extract[2], 'hours': int(extract[3]), 'year': int(extract[4][:1])})
+    return result
 
 def crawlCourse(username, password):
     br = mechanicalsoup.Browser()
@@ -141,17 +245,23 @@ def crawlCourse(username, password):
     courses = json.loads(grade_json)
     AdjustCourse.semester = -1
     AdjustCourse.semester_name = ''
-    result = [AdjustCourse(course) for course in courses['GRD_SCOR401'] if course['mrksGrdCd'] not in ['F', 'U']]
+    result = []
+    try:
+        result = [AdjustCourse(course) for course in courses['GRD_SCOR401'] if course['mrksGrdCd'] not in ['F', 'U']]
+    except Exception:
+        pass
     dept_json = br.post('https://shine.snu.ac.kr/uni/uni/scor/mrtr/findTabCumlMrksYyShtmClsfTtInq01List2.action',
             params={'cscLocale':'ko_KR','strPgmCd':'S030302'}, headers=headers,
             json={"SUN":{"strSchyy":"2016","strShtmFg":"U000200001","strDetaShtmFg":"U000300001","strBdegrSystemFg":"U000100001","strFlag":"all"}}).text
     user_json = br.post('https://shine.snu.ac.kr/com/com/sstm/logn/findUserInfo.action', headers=headers,
             json={"findUsers":{"rType":"3tier","logType":"systemConn","chgUserYn":"N","chgBfUser":"","chgAfUser":""}}).text
     name = json.loads(user_json)['userInfos'][0]['USERNM']
-    dept = json.loads(dept_json)['GRD_SCOR402'][0]
+    dept = json.loads(user_json)['userInfos'][0]['DEPARTMENTKORNM']
+    stuno = json.loads(user_json)['userInfos'][0]['USERID']
 
-    majorCourses = initMajorCourses(int(dept['stuno'][:4]))
+    majorCourses = initMajorCourses(int(stuno[:4]))
     majors = [[] for _ in range(8)]
+    electiveScore = 0
     for course in result:
         if course['course_type'] in ['전필', '전선']:
             if course['course_type'] == '전필':
@@ -159,6 +269,8 @@ def crawlCourse(username, password):
                 for replaceableCourse in replaceable(course['code']):
                     if replaceableCourse in [j for i in majorCourses for j in i]:
                         course['mandatory'] = 'true'
+            else:
+                electiveScore += course['hours']
             majors[course['semester']].append(course)
             for replaceableCourse in replaceable(course['code']):
                 for semester in range(len(majorCourses)):
@@ -175,6 +287,18 @@ def crawlCourse(username, password):
                 'mandatory': 'true',
                 'done': 'false',
                 })
+    global ELECTIVES
+    electives = [[] for _ in range(8)]
+    for course in ELECTIVES:
+        if Course.objects.filter(name=course['name']).count() == 0:
+            continue
+        if course['name'] in [course['name'] for course in result]:
+            continue
+        if Course.objects.filter(name=course['name'], semester='1').count() > Course.objects.filter(name=course['name'], semester='2').count():
+            electives[course['year'] * 2 - 2].append(course)
+        else:
+            electives[course['year'] * 2 - 1].append(course)
+        
     must = [
         [{'semester': 3, 'code': '4190.209'}],
         [{'semester': 6, 'code': '4190.422'}],
@@ -207,24 +331,144 @@ def crawlCourse(username, password):
                     'mandatory': 'true',
                     'done': 'false',
                     })
+    for i in range(8):
+        majors[i].append({
+            'code': '',
+            'name': '전선',
+            'hours': 0,
+            'mandatory': 'false',
+            'done': 'false',
+            'class': 'electives',
+            })
 
     # 교양
-    generalCourses = initGeneralCourses(int(dept['stuno'][:4]))
+    generalCourses = flatRule(initGeneralCourses(int(stuno[:4])))
     generals = [[] for _ in range(8)]
-    for semester in range(len(generalCourses)):
-        for rule in generalCourses[semester]:
-            if 'area' in rule:
-                areaList = [course.code for course in Course.objects.filter(area=rule['area'])]
-                for course in result:
-                    if course['code'] in areaList:
-                        pass
-            if 'subarea' in rule:
-                pass
-            if 'course' in rule:
-                pass
+    generalsDone = [course for course in result if course['course_type'] == '교양']
+    generalRule = []
+    for rule in generalCourses:
+        print('[+] Rule : %s' % rule['name'])
+        done = False
+        if 'area' in rule:
+            print('  [+] Type: Area')
+            areaList = [course.code for course in Course.objects.filter(area=rule['area'])]
+            toRemove = []
+            for course in generalsDone:
+                if course['code'] in areaList:
+                    print('      Course : %s' % course['name'])
+                    toRemove.append(course)
+                    rule['hours'] -= course['hours']
+                    course['mandatory'] = 'true'
+                    generals[course['semester']].append(course)
+                if rule['hours'] <= 0:
+                    done = True
+                    break
+            for remove in toRemove:
+                generalsDone.remove(remove)
+        if 'subarea' in rule and not done:
+            print('  [+] Type: SubArea')
+            toRemove = []
+            for course in generalsDone:
+                if Course.objects.filter(subarea=rule['subarea'], name=course['name']).count() > 0:
+                    print('      Course : %s' % course['name'])
+                    done = True
+                    if 'count' in rule:
+                        rule['count'] -= 1
+                    if 'hours' in rule:
+                        rule['hours'] -= course['hours']
+                    course['mandatory'] = 'true'
+                    toRemove.append(course)
+                    generals[course['semester']].append(course)
+                if 'count' in rule:
+                    if rule['count'] <= 0:
+                        done = True
+                        break
+                if 'hours' in rule:
+                    if rule['hours'] <= 0:
+                        done = True
+                        break
+            for remove in toRemove:
+                generalsDone.remove(remove)
+        if 'course' in rule and not done:
+            print('  [+] Type: Course')
+            if 'amount' in rule:
+                print('    [+] Type: Amout')
+                toRemove = []
+                for course in generalsDone:
+                    if course['name'] in rule['course']:
+                        print('      Course : %s' % course['name'])
+                        rule['course'].remove(course['name'])
+                        rule['amount'] -= course['hours']
+                        course['mandatory'] = 'true'
+                        toRemove.append(course)
+                        generals[course['semester']].append(course)
+                    if rule['amount'] <= 0:
+                        for another in generalCourses:
+                            if another != rule and another['name'] == rule['name']:
+                                another['amount'] += rule['amount']
+                                break
+                        done = True
+                        break
+                for remove in toRemove:
+                    generalsDone.remove(remove)
+            elif 'hours' in rule:
+                toRemove = []
+                for course in generalsDone:
+                    if course['name'] in rule['course']:
+                        print('      Course : %s' % course['name'])
+                        rule['course'].remove(course['name'])
+                        rule['hours'] -= course['hours']
+                        course['mandatory'] = 'true'
+                        toRemove.append(course)
+                        generals[course['semester']].append(course)
+                    if rule['hours'] <= 0:
+                        done = True
+                        break
+                for remove in toRemove:
+                    generalsDone.remove(remove)
+            else:
+                toRemove = []
+                for course in generalsDone:
+                    if course['name'] in rule['course']:
+                        print('      Course : %s' % course['name'])
+                        rule['course'].remove(course['name'])
+                        course['mandatory'] = 'true'
+                        toRemove.append(course)
+                        generals[course['semester']].append(course)
+                        done = True
+                        break
+                for remove in toRemove:
+                    generalsDone.remove(remove)
+        if not done:
+            generalRule.append(rule)
+
+    pp = pprint.PrettyPrinter(indent=4)
+    print(generalsDone)
+
+    for rule in generalRule:
+        rule['mandatory'] = 'true'
+        rule['done'] = 'false'
+        if 'amount' in rule:
+            rule['name'] += ' (' + str(rule['amount']) + ')'
+        generals[rule['semester']].append(rule)
+    for course in generalsDone:
+        course['mandatory'] = 'false'
+        course['done'] = 'true'
+        generals[course['semester']].append(course)
+    pp.pprint(generals)
+
+    generalSum = 0
+    generalDoneSum = 0
+    for semester in generals:
+        for course in semester:
+            if course['mandatory'] == 'true':
+                generalSum += course['hours']
+                if course['done'] == 'true':
+                    generalDoneSum += course['hours']
 
     score = sum([course['hours'] for course in result])
-    return {'courses': result, 'dept': dept['deptNm'], 'stuno': dept['stuno'], 'majorCourses': majors, 'score': score, 'name': name, 'general': [], 'majorSum': majorSum, 'majorDoneSum': majorDoneSum}
+    return {'courses': result, 'dept': dept, 'stuno': stuno, 'majorCourses': majors, 'score': score, 'name': name, 'generals': generals, 'majorSum': majorSum, 'majorDoneSum': majorDoneSum, 'electiveScore': electiveScore, 'electives': electives}
+
 
 def login(request):
     if request.method == 'GET':
@@ -252,3 +496,6 @@ def coursesJSON(request):
         result = crawlCourse(mysnu_username, mysnu_password)
         return JsonResponse(result)
     return JsonResponse(dict())
+
+ELECTIVES = cseCrawl()
+print('[+] Crawling electives Done')

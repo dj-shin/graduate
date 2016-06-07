@@ -62,6 +62,12 @@
       <tr>
         <td>학번:</td> <td>{{ stuno }}</td> <td>이수학점:</td> <td>{{ score }}</td>
       </tr>
+      <tr>
+        <td>이수 전공필수 학점:</td> <td>{{ majorDoneSum }}</td> <td>이수 전공선택 학점:</td> <td>{{ electiveScore }}</td>
+      </tr>
+      <tr>
+        <td>전체 학점:</td> <td>{{ score }} / 130</td>
+      </tr>
     </table>
 
     <div style="overflow:hidden; margin:20px 5px 10px 5px; height: 50px;">
@@ -142,12 +148,43 @@
       canvas.width = window.innerWidth * 0.47;
       var height = 40;
       var x = 0;
+      var prev_x;
       {% for course in semester %}
-      var prev_x = x;
+      prev_x = x;
       x += ctx.measureText("{{ course.name }}").width + 15;
-      if (x > canvas.width) {
+      if (x > canvas.width * 0.8) {
         x = 0;
-        prev_x = 0;
+        height += 35;
+      }
+      {% endfor %}
+      canvas.height = height;
+      var x = 0;
+      var y = 5;
+      var prev_x, prev_y;
+
+      {% for course in semester %}
+      prev_x = x;
+      prev_y = y;
+      x += ctx.measureText("{{ course.name }}").width + 15;
+      if (x > canvas.width * 0.8) {
+        x = 0;
+        y += 35;
+      }
+      drawName(ctx, "{{ course.name }}", prev_x, prev_y, {{ course.mandatory }}, {{ course.done }});
+      {% endfor %}
+    {% endfor %}
+
+    {% for semester in generals %}
+      var canvas = document.getElementById("general"+{{ forloop.counter }});
+      var ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth * 0.47;
+      var height = 40;
+      var x = 0;
+      var prev_x, prev_y;
+      {% for course in semester %}
+      x += ctx.measureText("{{ course.name }}").width + 15;
+      if (x > canvas.width * 0.8) {
+        x = 0;
         height += 35;
       }
       {% endfor %}
@@ -156,28 +193,16 @@
       var y = 5;
 
       {% for course in semester %}
-      var prev_x = x;
+      prev_x = x;
+      prev_y = y;
       x += ctx.measureText("{{ course.name }}").width + 15;
-      if (x > canvas.width) {
+      if (x > canvas.width * 0.8) {
         x = 0;
-        prev_x = 0;
         y += 35;
       }
-      drawName(ctx, "{{ course.name }}", prev_x, y, {{ course.mandatory }}, {{ course.done }});
+      drawName(ctx, "{{ course.name }}", prev_x, prev_y, {{ course.mandatory }}, {{ course.done }});
       {% endfor %}
     {% endfor %}
-
-    var canvas = document.getElementById("general"+i);
-    var ctx = canvas.getContext("2d");
-    var count = 5;
-    var count_per_line = 8;
-    canvas.height = 30 * Math.ceil(count/count_per_line) + 10;
-    canvas.width = window.innerWidth * 0.47;
-
-    drawName(ctx, "class1", 1, 5, true, true);
-    drawName(ctx, "class2", 80, 5, false, true);
-    drawName(ctx, "class3", 160, 5, true, false);
-    drawName(ctx, "class4", 240, 5, false, false);
     </script>
   </body>
 </html>

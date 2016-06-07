@@ -6,6 +6,12 @@ import xlrd
 
 def CrawlCourse():
     yearList = []
+    semesterName = {
+        'U000200001U000300001': '1',
+        'U000200001U000300002': 'S',
+        'U000200002U000300001': '2',
+        'U000200002U000300002': 'W'
+    }
     searchUrl = 'http://sugang.snu.ac.kr/sugang/cc/cc100.action'
     for year in range(2009, 2017):
         semesterList = []
@@ -176,10 +182,12 @@ def CrawlCourse():
                                 'year': year['year'], 'name': courses_sheet.cell_value(courses_index, 7),
                                 'hours': courses_sheet.cell_value(courses_index, 9),
                                 'area': area['name'] if area['name'] != '전체' else courses_sheet.cell_value(courses_index, 0) if courses_sheet.cell_value(courses_index, 0) in ['전필', '전선'] else '',
-                                'subarea': subarea['name'] if subarea['name'] != '전체' else ''}
+                                'subarea': subarea['name'] if subarea['name'] != '전체' else '',
+                                'semester': semesterName[semester['semester']]}
             for code, data in courses.items():
                 course = Course(
                         code=code, year=data['year'], name=data['name'],
-                        hours=data['hours'], area=data['area'], subarea=data['subarea'])
+                        hours=data['hours'], area=data['area'], subarea=data['subarea'],
+                        semester=data['semester'])
                 print(course)
                 course.save()

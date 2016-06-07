@@ -8,6 +8,7 @@ class Course(models.Model):
     hours = models.PositiveSmallIntegerField()
     area = models.CharField(max_length=40)
     subarea = models.CharField(max_length=40)
+    semester = models.CharField(max_length=10)
 
     def toJSON(self):
         return {
@@ -17,6 +18,7 @@ class Course(models.Model):
             'area': self.area,
             'subarea': self.subarea,
             'year': self.year,
+            'semester': self.semester,
         }
 
     def __str__(self):
