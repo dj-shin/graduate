@@ -1,0 +1,6 @@
+[client]
+database = graduate
+host = localhost
+user = mysql_username_here
+password = mysql_password_here
+default-character-set = utf8mb4
