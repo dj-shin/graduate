@@ -1,3 +1,13 @@
+/*
+Copyright (c) 2016, Shin DongJin. See the LICENSE file
+at the top-level directory of this distribution and at
+https://github.com/LastOne817/graduate/blob/master/LICENSE
+
+Licensed under the MIT license <http://opensource.org/licenses/MIT>.
+This file may not be copied, modified, or distributed except according
+to those terms.
+*/
+
 body {
 	background-color: white;
 }
@@ -7,19 +17,19 @@ h1 {
 }
 
 #id {
-	height: 50px;	
+	height: 50px;
 	border: 2px solid navy;
   font-size: 1.2em;
 }
 
 #pw {
-	height: 50px;	
+	height: 50px;
 	border: 2px solid navy;
   font-size: 1.2em;
 }
 
 #button {
-	height: 50px;	
+	height: 50px;
   font-size: 1.2em;
 }
 
