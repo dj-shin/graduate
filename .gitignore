@@ -6,3 +6,6 @@ migrations
 session
 *.log
 *.pid
+
+# Virtual environments
+/.venv/
