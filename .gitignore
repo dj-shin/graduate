@@ -1,6 +1,7 @@
-*.pyc
+# Python cache files
+__pycache__/
+
 static
-__pycache__
 migrations
 session
 
