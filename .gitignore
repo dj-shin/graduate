@@ -1,8 +1,6 @@
 # Python cache files
 __pycache__/
 
-static
-migrations
 session
 
 # Ignore temporary files
