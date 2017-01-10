@@ -3,6 +3,8 @@ static
 __pycache__
 migrations
 session
+
+# Ignore temporary files
 *.log
 *.pid
 
