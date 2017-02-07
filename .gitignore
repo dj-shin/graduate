@@ -1,9 +1,9 @@
-*.pyc
-static
-mysql.cnf
-__pycache__
-migrations
+# Python cache files
+__pycache__/
+
 session
+
+# Ignore temporary files
 *.log
 *.pid
 
